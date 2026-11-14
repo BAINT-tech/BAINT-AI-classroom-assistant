@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BAINT AI – Classroom Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS (same names as the Figma colour variables) ============ */
+:root{
+  --bg-app:#F4F6FB; --surface:#FFFFFF; --border:#E2E8F0;
+  --ink-900:#0F172A; --ink-600:#475569; --ink-400:#94A3B8;
+  --primary:#2563EB; --primary-dark:#1D4ED8; --primary-soft:#EEF2FF; --primary-line:#C7D2FE;
+  --teal:#0D9488; --teal-soft:#E6F6F3;
+  --danger:#DC2626; --danger-soft:#FEE2E2;
+  --note-soft:#FFF8E7; --note-ink:#8A5A00;
+  --shadow-1:0 3px 12px rgba(15,23,42,.06);
+  --shadow-2:0 10px 30px rgba(15,23,42,.12);
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--font);color:var(--ink-900);background:var(--bg-app);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+svg{display:block}
+
+/* ============ SHARED PIECES ============ */
+.logo{display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700;flex:none}
+.logo.s72{width:72px;height:72px;border-radius:22px;font-size:37px}
+.logo.s56{width:56px;height:56px;border-radius:17px;font-size:29px}
+.logo.s36{width:36px;height:36px;border-radius:11px;font-size:19px}
+.logo.s30{width:30px;height:30px;border-radius:9px;font-size:16px}
+.chip{background:var(--surface);border:1px solid var(--primary-line);color:var(--primary-dark);font-size:13px;font-weight:500;padding:8px 12px;border-radius:16px;text-align:left;transition:background .15s}
+.chip:hover{background:var(--primary-soft)}
+.action{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:6px 10px 6px 8px;border-radius:8px;background:var(--primary-soft);border:1px solid var(--primary-line);color:var(--primary-dark)}
+.action.ok{background:var(--teal-soft);border-color:var(--teal-soft);color:var(--teal)}
+.action.stop{background:var(--danger-soft);border-color:var(--danger-soft);color:var(--danger)}
+.iconbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;transition:transform .1s}
+.iconbtn:active{transform:scale(.94)}
+.iconbtn.send{background:var(--primary);color:#fff}
+.iconbtn.mic{background:var(--surface);border:1px solid var(--border);color:#334155}
+.iconbtn.mic.listening{background:var(--danger);border-color:var(--danger);color:#fff}
+.iconbtn:disabled{opacity:.5;cursor:default}
+
+/* ============ LAUNCH ============ */
+.launch{min-height:100%;display:grid;place-items:center;padding:24px;background:linear-gradient(180deg,#E8EEFF,#F7F9FD)}
+.launch-card{width:min(560px,100%);background:var(--surface);border:1px solid var(--border);border-radius:28px;padding:48px 40px 36px;box-shadow:var(--shadow-2);display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+.launch-card h1{margin:0;font-size:40px;font-weight:700;letter-spacing:-.01em}
+.launch-card .tag{margin:6px 0 0;font-size:18px;color:var(--ink-600)}
+.launch-card .intro{margin:0;font-size:15px;line-height:1.6;color:var(--ink-600);max-width:440px}
+.highlights{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.highlights span{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary-dark);font-size:12.5px;font-weight:500;padding:7px 12px 7px 10px;border-radius:16px}
+.start{background:var(--primary);color:#fff;font-size:16px;font-weight:600;padding:15px 36px;border-radius:14px;box-shadow:var(--shadow-1);transition:background .15s}
+.start:hover{background:var(--primary-dark)}
+.note{background:var(--note-soft);color:var(--note-ink);font-size:12px;line-height:1.5;padding:12px 14px;border-radius:12px;text-align:left;width:100%}
+
+/* ============ APP SHELL ============ */
+.app{height:100%;display:grid;grid-template-columns:320px 1fr}
+.sidebar{background:var(--surface);border-inline-end:1px solid var(--border);padding:20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px}
+.brand b{display:block;font-size:16px}
+.brand small{font-size:12px;color:var(--ink-400)}
+.label{margin:0;font-size:12px;font-weight:600;color:var(--ink-400);letter-spacing:.04em}
+.subjects{display:flex;flex-direction:column;gap:2px}
+.subject{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:14px;font-weight:500;color:var(--ink-600);text-align:start;width:100%;transition:background .15s}
+.subject:hover{background:var(--bg-app)}
+.subject .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-400);flex:none}
+.subject[aria-pressed="true"]{background:var(--primary-soft);color:var(--primary-dark);font-weight:600}
+.subject[aria-pressed="true"] .dot{background:var(--primary)}
+.spacer{flex:1}
+.select{position:relative;display:flex;align-items:center;background:var(--bg-app);border:1px solid var(--border);border-radius:10px}
+.select .lead-ic{position:absolute;inset-inline-start:12px;pointer-events:none;color:var(--ink-600)}
+.select .tail-ic{position:absolute;inset-inline-end:12px;pointer-events:none;color:var(--ink-400)}
+.select select{appearance:none;-webkit-appearance:none;background:none;border:0;width:100%;padding:10px 36px;font-size:14px;font-weight:500;border-radius:10px}
+.reminder{display:flex;gap:6px;font-size:11px;line-height:1.4;color:var(--ink-400)}
+.reminder svg{flex:none;margin-top:1px}
+
+.main{display:flex;flex-direction:column;min-width:0;height:100%}
+.topbar{display:flex;align-items:center;gap:10px;padding:0 32px;height:68px;background:var(--surface);border-bottom:1px solid var(--border);flex:none}
+.topbar .logo{display:none}
+.topbar h2{margin:0;font-size:18px;font-weight:600}
+.topbar p{margin:2px 0 0;font-size:13px;color:var(--ink-600)}
+.topbar .grow{flex:1;min-width:0}
+.setup-btn{display:none;width:40px;height:40px;border-radius:12px;background:var(--primary-soft);color:var(--primary-dark);place-items:center}
+
+.chat{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.messages{width:min(720px,100%);margin:0 auto;padding:24px 16px 12px;display:flex;flex-direction:column;gap:18px;min-height:100%}
+.messages.is-empty{justify-content:center;align-items:center;text-align:center}
+.hero{display:flex;flex-direction:column;align-items:center;gap:14px}
+.hero h3{margin:4px 0 0;font-size:26px;font-weight:600}
+.hero p{margin:0;font-size:15px;color:var(--ink-600)}
+.hero .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:4px}
+.row{display:flex;gap:10px;align-items:flex-start}
+.row.user{justify-content:flex-end}
+.bubble-user{background:var(--primary);color:#fff;font-size:15px;line-height:1.5;padding:12px 18px;border-radius:18px 18px 4px 18px;max-width:80%;overflow-wrap:anywhere;white-space:pre-wrap}
+.row.baint .bubble{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:4px 18px 18px 18px;padding:18px 20px 16px;box-shadow:var(--shadow-1);display:flex;flex-direction:column;gap:14px}
+.bubble p{margin:0;font-size:15px;line-height:1.55;white-space:pre-wrap}
+.bubble .lead{font-weight:600}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;gap:12px;align-items:flex-start}
+.step .n{width:24px;height:24px;border-radius:50%;background:var(--primary-soft);color:var(--primary-dark);font-size:12px;font-weight:600;display:grid;place-items:center;flex:none;margin-top:0}
+.step .eq{display:block;font-weight:600;color:var(--primary-dark);margin-top:2px}
+.check{display:flex;align-items:center;gap:8px;background:var(--teal-soft);color:var(--teal);font-size:14px;font-weight:500;padding:10px 14px 10px 12px;border-radius:10px}
+.quote{background:var(--bg-app);border-radius:10px;padding:9px 12px;font-size:13px;color:var(--ink-600)}
+.quote b{color:var(--ink-900);font-weight:600}
+.choice{display:flex;align-items:center;gap:12px;width:100%;text-align:start;background:var(--primary-soft);border:1px solid var(--primary-line);border-radius:12px;padding:12px 14px 12px 12px;color:var(--primary-dark);font-size:16px;font-weight:600;transition:background .15s}
+.choice:hover{background:#E0E7FF}
+.choice .k{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700;flex:none}
+.bubble .hint{font-size:12.5px;line-height:1.45;color:var(--ink-600)}
+.actions,.suggest{display:flex;flex-wrap:wrap;gap:8px}
+.sys{align-self:center;display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary-dark);font-size:12px;font-weight:500;padding:5px 12px 5px 10px;border-radius:12px}
+.dots{display:inline-flex;gap:5px;padding:6px 0}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--ink-400);animation:blink 1s infinite ease-in-out}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+.composer{flex:none;padding:12px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--bg-app)}
+.modes{display:flex;gap:2px;padding:4px;background:var(--surface);border:1px solid var(--border);border-radius:22px;max-width:100%;overflow-x:auto}
+.mode{font-size:13px;font-weight:500;color:var(--ink-600);padding:7px 14px;border-radius:18px;white-space:nowrap}
+.mode[aria-pressed="true"]{background:var(--primary);color:#fff}
+.input{width:min(720px,100%);height:56px;display:flex;align-items:center;gap:8px;padding:6px 6px 6px 22px;background:var(--surface);border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow-1)}
+.input:focus-within{border-color:var(--primary)}
+.input.listening{border:1.5px solid var(--danger)}
+.input input{flex:1;min-width:0;border:0;outline:0;background:none;font-size:15px}
+.input.listening input::placeholder{color:var(--danger)}
+.input input::placeholder{color:var(--ink-400)}
+.disclaimer{margin:0;max-width:720px;text-align:center;font-size:11px;line-height:1.45;color:var(--ink-400)}
+
+/* ============ SETUP SHEET (mobile) ============ */
+.scrim{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{width:min(520px,100%);max-height:92%;overflow-y:auto;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px;box-shadow:var(--shadow-2);animation:rise .22s ease-out}
+@keyframes rise{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--border);align-self:center}
+.sheet-head{display:flex;align-items:center;justify-content:space-between}
+.sheet-head h3{margin:0;font-size:19px;font-weight:600}
+.x{width:34px;height:34px;border-radius:50%;background:var(--bg-app);display:grid;place-items:center;color:var(--ink-600)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:13px;font-weight:500;color:var(--ink-600);background:var(--surface);border:1px solid var(--border);padding:7px 14px;border-radius:18px}
+.pill[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+.done{background:var(--primary);color:#fff;font-size:16px;font-weight:600;padding:15px;border-radius:14px}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .topbar{padding:calc(10px + env(safe-area-inset-top)) 16px 10px;height:auto}
+  .topbar .logo{display:grid}
+  .setup-btn{display:grid}
+  .row.baint .avatar{display:none}
+  .app.has-msgs .disclaimer{display:none}
+  .hero h3{font-size:22px}
+  .launch-card{padding:40px 24px 28px}
+  .launch-card h1{font-size:36px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ LAUNCH ============ -->
+<main id="launch" class="launch">
+  <section class="launch-card">
+    <div class="logo s72" aria-hidden="true">B</div><!-- swap for <img src="logo.png"> -->
+    <div>
+      <h1>BAINT AI</h1>
+      <p class="tag">Your classroom assistant</p>
+    </div>
+    <p class="intro">Ask a question and get a clear explanation: step by step, in simple words, or in your own language.</p>
+    <div class="highlights" id="highlights"></div>
+    <button class="start" id="startBtn" type="button">Start learning</button>
+    <p class="note" id="discLaunch"></p>
+  </section>
+</main>
+
+<!-- ============ APP ============ -->
+<div id="app" class="app" hidden>
+  <aside class="sidebar" aria-label="Learning setup">
+    <div class="brand"><div class="logo s36" aria-hidden="true">B</div><div><b>BAINT AI</b><small>Classroom Assistant</small></div></div>
+    <h2 class="label">SUBJECT</h2>
+    <div class="subjects" id="subjectList"></div>
+    <div class="spacer"></div>
+    <div>
+      <h2 class="label" style="margin-bottom:8px">LANGUAGE</h2>
+      <div class="select" data-lang-select></div>
+    </div>
+    <p class="reminder" id="reminderSide"></p>
+  </aside>
+
+  <section class="main">
+    <header class="topbar">
+      <div class="logo s36" aria-hidden="true">B</div>
+      <div class="grow"><h2 id="subjectTitle"></h2><p id="subjectSub"></p></div>
+      <button class="setup-btn" id="setupBtn" type="button" aria-label="Open learning setup"></button>
+    </header>
+
+    <div class="chat" id="chat" aria-live="polite"><div class="messages" id="messages"></div></div>
+
+    <footer class="composer">
+      <div class="modes" id="modeBar" role="group" aria-label="Explanation style"></div>
+      <form class="input" id="askForm" autocomplete="off">
+        <input id="q" type="text" aria-label="Your question" enterkeyhint="send">
+        <button class="iconbtn mic" id="micBtn" type="button" aria-label="Speak your question"></button>
+        <button class="iconbtn send" type="submit" aria-label="Send question"></button>
+      </form>
+      <p class="disclaimer" id="discApp"></p>
+    </footer>
+  </section>
+</div>
+
+<!-- ============ SETUP SHEET ============ -->
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grab"></div>
+    <div class="sheet-head"><h3 id="sheetTitle">Learning setup</h3><button class="x" id="closeSheet" type="button" aria-label="Close"></button></div>
+    <div class="sec"><h4 class="label">SUBJECT</h4><div class="pills" id="sheetSubjects"></div></div>
+    <div class="sec"><h4 class="label">EXPLANATION STYLE</h4><div class="pills" id="sheetModes"></div></div>
+    <div class="sec"><h4 class="label">LANGUAGE</h4><div class="select" data-lang-select></div></div>
+    <p class="reminder" id="reminderSheet"></p>
+    <button class="done" id="doneSheet" type="button">Done</button>
+  </div>
+</div>
+
+<script src="lessons.js"></script>
+<script src="solver.js"></script>
+
+<script>
+/* BAINT integration bridge: lesson library + problem solver */
+(function(){
+  "use strict";
+  const SUBJECTS = ['math','english','biology','chemistry','history','computer','biochemistry','histology','enzymology','purine_pyrimidine','cholesterol','engineering','physics','economics','geography','government'];
+  const normalize = value => String(value || '').toLowerCase()
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[’‘]/g,"'").replace(/[^a-z0-9²³%+\-*/×÷=:. ]/g,' ')
+    .replace(/\s+/g,' ').trim();
+  const lessons = () => (typeof EDU_LESSONS !== 'undefined' && Array.isArray(EDU_LESSONS)) ? EDU_LESSONS : [];
+  const subjectAliases = {
+    mathematics:'math', maths:'math', math:'math', english_language:'english', literature:'english',
+    computer_science:'computer', government:'government', economics:'economics'
+  };
+  const normSubject = s => subjectAliases[normalize(s).replace(/ /g,'_')] || normalize(s).replace(/ /g,'_');
+  function lessonSubjectMatches(item, subject){
+    const wanted=normSubject(subject);
+    return !wanted || normSubject(item.subject)===wanted || (Array.isArray(item.also)&&item.also.some(x=>normSubject(x)===wanted));
+  }
+  function scoreLesson(item, question){
+    const q=normalize(question); if(!q) return 0;
+    const qWords=new Set(q.split(' ').filter(w=>w.length>2));
+    const phrases=[item.title].concat(Array.isArray(item.aliases)?item.aliases:[]).map(normalize).filter(Boolean);
+    let score=0;
+    for(const phrase of phrases){
+      if(q===phrase) score=Math.max(score,150+phrase.length);
+      else if(phrase.length>=4 && (` ${q} `).includes(` ${phrase} `)) score=Math.max(score,110+phrase.length);
+      else if(phrase.length>=4 && q.includes(phrase)) score=Math.max(score,85+phrase.length);
+      else {
+        const tokens=phrase.split(' ').filter(w=>w.length>2);
+        if(tokens.length){
+          const hits=tokens.filter(w=>qWords.has(w)).length;
+          const ratio=hits/tokens.length;
+          if(hits>=1 && (tokens.length===1 || ratio>=0.66)) score=Math.max(score,30+hits*12+ratio*15+Math.min(phrase.length,30)/10);
+        }
+      }
+    }
+    return score;
+  }
+  function findLesson(question, subject){
+    const all=lessons();
+    const ranked=all.map(item=>({item,score:scoreLesson(item,question),subject:lessonSubjectMatches(item,subject)}));
+    let pool=ranked.filter(x=>x.subject);
+    pool.sort((a,b)=>b.score-a.score);
+    if(pool[0] && pool[0].score>=30) return pool[0].item;
+    // If the student selected the wrong subject, allow a strong match in another subject.
+    ranked.sort((a,b)=>b.score-a.score);
+    if(ranked[0] && ranked[0].score>=105) return ranked[0].item;
+    return null;
+  }
+  function lessonAnswer(item, mode){
+    const simple=mode==='simple'||mode==='human';
+    const meaning=item.meaning||'';
+    const analogy=item.think||''; // everyday picture / analogy in lessons.js
+    const keyIdeas=Array.isArray(item.steps)?item.steps:[];
+    const steps=keyIdeas.map(x=>({text:String(x)}));
+    const example=item.example||'';
+    const uses=item.uses||'';
+    const summary=item.summary||'';
+    let text=simple ? (analogy ? analogy+'\n\n' : '')+meaning : meaning;
+    return {
+      lead:item.title||'Lesson explanation',
+      text:text || summary || 'This lesson is in the library, but its explanation is still being prepared.',
+      steps,
+      quote:example,
+      check:summary,
+      hint:uses?'Where it is used: '+uses:'',
+      suggestions:(Array.isArray(item.aliases)?item.aliases:[]).slice(0,3)
+    };
+  }
+  function answer(question,ctx){
+    ctx=ctx||{};
+    const subject=normSubject(ctx.subject||'math');
+    const q=String(question||'').trim();
+    if(subject==='math' && typeof window.baintSolve==='function'){
+      try{const solved=window.baintSolve(q);if(solved&&solved.text)return {lead:'Let’s solve it step by step.',text:solved.text,suggestions:['Explain it differently','Give me another example'],topic:solved.topic||'math'};}catch(e){console.warn('BAINT solver error',e);}
+    }
+    const lesson=findLesson(q,subject);
+    if(lesson)return lessonAnswer(lesson,ctx.mode);
+    return {lead:'Let’s find the right lesson',text:'I could not find a close match in the current lesson library. Try the topic name or a key term. If this question should be covered, send it as feedback so we can add it.',suggestions:suggest(subject)};
+  }
+  function suggest(subject){
+    const s=normSubject(subject);
+    return lessons().filter(x=>normSubject(x.subject)===s || (Array.isArray(x.also)&&x.also.some(y=>normSubject(y)===s))).slice(0,6).map(x=>'Explain '+x.title);
+  }
+  window.BAINT_ENGINE={answer,suggest};
+  window.BAINT_LOCAL_STATUS={lessonsLoaded:lessons().length,subjects:[...new Set(lessons().map(x=>x.subject))],solverLoaded:typeof window.baintSolve==='function'};
+})();
+</script>
+<script src="engine.js"></script>
+<script>
+/* =====================================================================
+   1. DATA
+   ===================================================================== */
+const SUBJECTS=[
+  ['math','Mathematics'],['english','English Language & Literature'],['biology','Biology'],['chemistry','Chemistry'],
+  ['history','History'],['computer','Computer Science'],['biochemistry','Biochemistry'],['histology','Histology'],
+  ['enzymology','Advanced Enzymology'],['purine_pyrimidine','Purine & Pyrimidine Biosynthesis'],
+  ['cholesterol','Cholesterol Biosynthesis'],['engineering','Engineering / Problem-Solving'],['physics','Physics'],['economics','Economics'],['geography','Geography'],['government','Government']
+];
+const MODES=['step','simple','logic','context','human'];
+const LANGS=[['en','🇺🇸 English','en-US'],['zh','🇨🇳 Chinese','zh-CN'],['fr','🇫🇷 French','fr-FR'],['es','🇪🇸 Spanish','es-ES'],['th','🇹🇭 Thai','th-TH'],['ko','🇰🇷 Korean','ko-KR'],['vi','🇻🇳 Vietnamese','vi-VN'],['ja','🇯🇵 Japanese','ja-JP'],['ar','🇦🇪 Arabic (UAE)','ar-AE']];
+/* Strings that change with the language. Anything missing falls back to English. */
+const I18N={
+  en:{modes:['Step-by-step','Simple','Logical','Context','Human'],ph:'Ask BAINT AI...',copy:'Copy answer',copied:'Copied',listen:'Listen',stop:'Stop'},
+  zh:{modes:['逐步讲解','简单','逻辑分析','情境联系','人性化'],ph:'向 BAINT AI 提问...',copy:'复制答案',listen:'收听'},
+  fr:{modes:['Étape par étape','Simple','Logique','Contexte','Humain'],ph:'Posez une question à BAINT AI...',copy:'Copier la réponse',listen:'Écouter'},
+  es:{modes:['Paso a paso','Simple','Lógico','Contexto','Humano'],ph:'Pregunta a BAINT AI...',copy:'Copiar respuesta',listen:'Escuchar'},
+  th:{modes:['ทีละขั้นตอน','เรียบง่าย','เชิงตรรกะ','บริบท','แบบมนุษย์'],ph:'ถาม BAINT AI...',listen:'ฟัง'},
+  ko:{modes:['단계별','간단히','논리적','맥락','인간적'],ph:'BAINT AI에게 질문하세요...',listen:'듣기'},
+  vi:{modes:['Từng bước','Đơn giản','Logic','Ngữ cảnh','Con người'],ph:'Hỏi BAINT AI...',listen:'Nghe'},
+  ja:{modes:['ステップごと','シンプル','論理的','文脈','人間的'],ph:'BAINT AIに質問...',listen:'聞く'},
+  ar:{modes:['خطوة بخطوة','بسيط','منطقي','سياق','إنساني'],ph:'اسأل BAINT AI...',listen:'استماع'}
+};
+const DISCLAIMER='Prototype for testing. Answers come from a built-in lesson library, so some questions may not be covered yet. Human supervision encouraged.';
+const REMINDER='Study reminders appear when browser notifications are allowed.';
+const t=k=>(I18N[state.lang]&&I18N[state.lang][k])||I18N.en[k];
+
+/* =====================================================================
+   2. ICONS (same set as the Figma file)
+   ===================================================================== */
+const IC={
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  up:'<path d="M12 19V5M5 12l7-7 7 7"/>',
+  volume:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
+  copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+  check:'<path d="m5 12 5 5L20 7"/>',
+  stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/>',
+  sliders:'<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+  swap:'<path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/>',
+  close:'<path d="M6 6l12 12M18 6 6 18"/>'
+};
+const ic=(n,s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+const $=id=>document.getElementById(id);
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* =====================================================================
+   3. ANSWER ENGINE
+   ---------------------------------------------------------------------
+   The interface only needs ONE function:  BAINT_ENGINE.answer(question, {subject, mode, lang})
+   It may return a value or a Promise. The reply object can use any of:
+     lead        bold first line            steps   [{text, eq}]
+     text        plain paragraph(s)         check   "Check: 2(4) + 3 = 11"
+     quote       "You entered something like" line
+     ask         a question in bold         choices [{key:'A', label:'...'}]  (clicking sends the key)
+     hint        small grey help text       suggestions ['Explain ...', ...]
+     subject     id to switch to (shows a "Subject switched" notice)
+   To use your real lessons.js / solver.js, replace BAINT_ENGINE (see bottom of the script).
+   The small engine below lets the interface work on its own.
+   ===================================================================== */
+const demoEngine=(()=>{
+  let pending=null,lastQ=null;
+  const fmt=n=>String(Math.round(n*1e5)/1e5);
+  const mathLike=q=>/\d\s*[-+*/^=×÷]|=\s*-?\d|\bx\s*=/i.test(q);
+  const sugg=s=>s==='math'?['Solve 3x - 5 = 10','Solve 4x + 8 = 24','Explain it differently']:[];
+
+  function linear(q,mode){
+    const s=q.replace(/^\s*(how do i solve|solve|find x in|what is x in)\s*/i,'').replace(/[?.!]+\s*$/,'').replace(/\s+/g,'').replace(/−/g,'-');
+    const m=s.match(/^([+-]?\d*\.?\d*)x([+-]\d+\.?\d*)?=([+-]?\d+\.?\d*)$/i);
+    if(!m)return null;
+    const a=(m[1]===''||m[1]==='+')?1:(m[1]==='-'?-1:parseFloat(m[1])),b=m[2]?parseFloat(m[2]):0,c=parseFloat(m[3]);
+    if(!a)return null;
+    const v=(c-b)/a,co=a===1?'':(a===-1?'-':fmt(a));
+    const check=b?`Check: ${fmt(a)}(${fmt(v)}) ${b>=0?'+':'−'} ${fmt(Math.abs(b))} = ${fmt(c)}`:`Check: ${fmt(a)}(${fmt(v)}) = ${fmt(c)}`;
+    const r={check,suggestions:sugg('math')};
+    if(mode==='simple'){r.text=`x = ${fmt(v)}. Undo the ${b?(b>0?'+ '+fmt(b):'− '+fmt(-b))+', then ':''}divide by ${fmt(a)}.`;return r}
+    r.lead={step:"Let's solve it step by step.",logic:'Isolate x by undoing each operation in reverse order.',context:'An equation is a balance: whatever we do to one side, we do to the other.',human:'Think of it as a balance scale. Keep both sides equal.'}[mode]||"Let's solve it step by step.";
+    r.steps=[];
+    if(b)r.steps.push({text:b>0?`Subtract ${fmt(b)} from both sides.`:`Add ${fmt(-b)} to both sides.`,eq:`${co}x = ${fmt(c-b)}`});
+    if(a!==1)r.steps.push({text:`Divide both sides by ${fmt(a)}.`,eq:`x = ${fmt(v)}`});
+    if(!r.steps.length)r.steps.push({text:'x is already on its own.',eq:`x = ${fmt(v)}`});
+    return r;
+  }
+  function exponent(q){
+    const m=q.replace(/\s+/g,'').match(/(\d+(?:\.\d+)?)\^(\d+)([a-z])=(\d+(?:\.\d+)?)/i);
+    if(!m)return null;
+    const a=+m[1],k=+m[2],n=+m[4];
+    pending={a,k,n};
+    return {text:"I can work through this, but I need to confirm how the exponent is written so I don't solve the wrong equation.",
+      quote:`${a}^${k}${m[3]} = ${n}`,ask:'Which did you mean?',
+      choices:[{key:'A',label:`${a}^(${k}x) = ${n}`},{key:'B',label:`(${a}^${k}) × x = ${n}`}],
+      hint:'Reply A or B, or add parentheses around the exponent.'};
+  }
+  function resolve(p,key){
+    if(key==='A'){const e=Math.log(p.n)/Math.log(p.a);return {lead:"Thanks for clarifying. You mean "+`${p.a}^(${p.k}x) = ${p.n}.`,
+      steps:[{text:`Find the power that gives ${p.n}.`,eq:`${p.k}x = ${fmt(e)}`},{text:`Divide both sides by ${p.k}.`,eq:`x = ${fmt(e/p.k)}`}],suggestions:sugg('math')}}
+    const pw=Math.pow(p.a,p.k);
+    return {lead:"Thanks for clarifying. You mean "+`(${p.a}^${p.k}) × x = ${p.n}.`,
+      steps:[{text:`Work out ${p.a}^${p.k}.`,eq:`${fmt(pw)}x = ${p.n}`},{text:`Divide both sides by ${fmt(pw)}.`,eq:`x = ${fmt(p.n/pw)}`}],suggestions:sugg('math')};
+  }
+  function arithmetic(q){
+    const s=q.replace(/^\s*(what is|calculate)\s*/i,'').replace(/[?=\s]+$/,'').replace(/×/g,'*').replace(/÷/g,'/');
+    if(!/^[\d\s+\-*/().]+$/.test(s)||!/\d\s*[-+*/]\s*[\d(]/.test(s))return null;
+    try{const v=Function('"use strict";return ('+s+')')();if(!isFinite(v))return null;return {lead:`${s.replace(/\s+/g,' ')} = ${fmt(v)}`,suggestions:sugg('math')}}catch(e){return null}
+  }
+  const api={
+    suggest:sugg,
+    answer(q,ctx){
+      q=q.trim();const out={};
+      if(ctx.subject!=='math'&&mathLike(q))out.subject='math';
+      if(pending){const k=q.toUpperCase().replace(/[^AB]/g,'');if((k==='A'||k==='B')&&q.length<4){const p=pending;pending=null;return {...out,...resolve(p,k)}}pending=null}
+      if(/(don'?t|do not)\s+(get|understand)|explain\s+(it\s+)?(differently|in another way|another way|again)|try another way/i.test(q)){
+        if(!lastQ)return {text:'Ask me a question first, then I can explain it another way.'};
+        const r=api.answer(lastQ,{...ctx,mode:'simple'});r.lead='Let me try another way.';return r;
+      }
+      const r=exponent(q)||linear(q,ctx.mode)||arithmetic(q);
+      if(r){lastQ=q;return {...out,...r}}
+      return {...out,text:"I don't have a lesson on that yet. Answers come from a built-in lesson library, so some questions may not be covered. Try rephrasing, or pick another subject.",suggestions:sugg(ctx.subject)};
+    }
+  };
+  return api;
+})();
+/* >>> Plug in your own engine here. Example:
+   window.BAINT_ENGINE={ answer:(q,ctx)=>({ text: yourLessonLookup(q,ctx.subject,ctx.mode,ctx.lang) }) };
+   (define it in a <script> placed BEFORE this one) */
+const engine=window.BAINT_ENGINE||demoEngine;
+
+/* =====================================================================
+   4. STATE
+   ===================================================================== */
+const state={subject:'math',mode:'step',lang:'en',messages:[],busy:false,started:false};
+const subjectName=id=>(SUBJECTS.find(s=>s[0]===id)||[])[1]||id;
+
+/* =====================================================================
+   5. RENDERING
+   ===================================================================== */
+function renderPickers(){
+  // sidebar subject list
+  const list=$('subjectList');list.innerHTML='';
+  SUBJECTS.forEach(([id,name])=>{
+    const b=el('button','subject');b.type='button';b.setAttribute('aria-pressed',id===state.subject);
+    b.append(el('span','dot'),el('span','',name));b.onclick=()=>setSubject(id);list.append(b);
+  });
+  // sheet pills
+  const sp=$('sheetSubjects');sp.innerHTML='';
+  SUBJECTS.forEach(([id,name])=>{const b=el('button','pill',name);b.type='button';b.setAttribute('aria-pressed',id===state.subject);b.onclick=()=>setSubject(id);sp.append(b)});
+  const sm=$('sheetModes');sm.innerHTML='';
+  const mb=$('modeBar');mb.innerHTML='';
+  MODES.forEach((id,i)=>{
+    const label=t('modes')[i];
+    const a=el('button','mode',label);a.type='button';a.setAttribute('aria-pressed',id===state.mode);a.onclick=()=>setMode(id);mb.append(a);
+    const b=el('button','pill',label);b.type='button';b.setAttribute('aria-pressed',id===state.mode);b.onclick=()=>setMode(id);sm.append(b);
+  });
+  // language selects (sidebar + sheet stay in sync)
+  document.querySelectorAll('[data-lang-select]').forEach(box=>{
+    box.innerHTML=ic('globe',16).replace('<svg','<svg class="lead-ic"')+'<select aria-label="Language"></select>'+ic('chev',16).replace('<svg','<svg class="tail-ic"');
+    const sel=box.querySelector('select');
+    LANGS.forEach(([id,label])=>{const o=el('option','',label);o.value=id;sel.append(o)});
+    sel.value=state.lang;sel.onchange=()=>setLang(sel.value);
+  });
+}
+function renderHeader(){
+  $('subjectTitle').textContent=subjectName(state.subject);
+  $('subjectSub').textContent='Explaining '+t('modes')[MODES.indexOf(state.mode)].toLowerCase()+'  ·  Built-in lesson library';
+  $('q').placeholder=state.listening?'Listening… speak your question':t('ph');
+}
+function plain(m){
+  const parts=[];
+  if(m.lead)parts.push(m.lead);
+  if(m.text)parts.push(m.text);
+  if(m.steps)m.steps.forEach((s,i)=>parts.push(`${i+1}. ${s.text} ${s.eq||''}`.trim()));
+  if(m.check)parts.push(m.check);
+  if(m.ask)parts.push(m.ask);
+  if(m.choices)m.choices.forEach(c=>parts.push(`${c.key}) ${c.label}`));
+  return parts.join('\n');
+}
+function actionBtn(kind,label){const b=el('button','action');b.type='button';b.innerHTML=ic(kind,14);b.append(el('span','',label));return b}
+
+function renderBaint(m,isLast){
+  const row=el('div','row baint');
+  const av=el('div','logo s30 avatar','B');av.setAttribute('aria-hidden','true');row.append(av);
+  const b=el('div','bubble');row.append(b);
+  if(m.lead)b.append(el('p','lead',m.lead));
+  if(m.text)String(m.text).split('\n\n').forEach(t=>{if(t.trim())b.append(el('p','',t))});
+  if(m.quote){const q=el('div','quote');if(m.quoteLabel){q.style.whiteSpace='pre-line';q.append(m.quoteLabel+': ',document.createTextNode(m.quote))}else q.append('You entered something like: ',el('b','',m.quote));b.append(q)}
+  if(m.steps&&m.steps.length){
+    const w=el('div','steps');
+    m.steps.forEach((s,i)=>{const r=el('div','step');r.append(el('span','n',String(i+1)));const d=el('div');const p=el('p','',s.text);d.append(p);if(s.eq)d.append(el('span','eq',s.eq));r.append(d);w.append(r)});
+    b.append(w);
+  }
+  if(m.check){const c=el('div','check');c.innerHTML=ic('check',16);c.append(el('span','',m.check));b.append(c)}
+  if(m.ask)b.append(el('p','lead',m.ask));
+  if(m.choices){
+    m.choices.forEach(c=>{const x=el('button','choice');x.type='button';x.append(el('span','k',c.key),el('span','',c.label));x.onclick=()=>ask(c.key);x.disabled=!isLast;if(!isLast)x.style.opacity=.6;b.append(x)});
+  }
+  if(m.hint)b.append(el('p','hint',m.hint));
+  // actions
+  const acts=el('div','actions');
+  const copy=actionBtn('copy',t('copy'));copy.onclick=()=>copyText(plain(m),copy);
+  const listen=actionBtn('volume',t('listen'));listen.onclick=()=>toggleSpeak(plain(m),listen);
+  acts.append(copy,listen);b.append(acts);
+  if(isLast&&m.suggestions&&m.suggestions.length){
+    const s=el('div','suggest');
+    m.suggestions.forEach(x=>{const c=el('button','chip',x);c.type='button';c.onclick=()=>ask(x);s.append(c)});
+    b.append(s);
+  }
+  return row;
+}
+function render(){
+  const box=$('messages');box.innerHTML='';
+  const empty=!state.messages.length;
+  box.classList.toggle('is-empty',empty);
+  $('app').classList.toggle('has-msgs',!empty);
+  if(empty){
+    const h=el('div','hero');
+    const lg=el('div','logo s56','B');lg.setAttribute('aria-hidden','true');
+    h.append(lg,el('h3','','Ask a question about '+subjectName(state.subject)),el('p','','Ask a question and I will explain the selected topic clearly.'));
+    const sg=engine.suggest?engine.suggest(state.subject):[];
+    const starters=state.subject==='math'?['Explain linear equations','Solve 2x + 3 = 11','What is 12 × 7 + 4?']:[];
+    const chips=el('div','chips');
+    (starters.length?starters:sg).forEach(x=>{const c=el('button','chip',x);c.type='button';c.onclick=()=>ask(x);chips.append(c)});
+    if(chips.children.length)h.append(chips);
+    box.append(h);return;
+  }
+  const lastBaint=state.messages.map(m=>m.role).lastIndexOf('baint');
+  state.messages.forEach((m,i)=>{
+    if(m.role==='user'){const r=el('div','row user');r.append(el('div','bubble-user',m.text));box.append(r)}
+    else if(m.role==='note'){const n=el('div','sys');n.innerHTML=ic('swap',13);n.append(el('span','',m.text));box.append(n)}
+    else box.append(renderBaint(m,i===lastBaint));
+  });
+  if(state.busy){const r=el('div','row baint');const a=el('div','logo s30 avatar','B');r.append(a);const b=el('div','bubble');const d=el('div','dots');d.innerHTML='<i></i><i></i><i></i>';b.append(d);r.append(b);box.append(r)}
+  const chat=$('chat');chat.scrollTop=chat.scrollHeight;
+}
+
+/* =====================================================================
+   6. ACTIONS
+   ===================================================================== */
+function setSubject(id){
+  state.subject=id;
+  if(!state.messages.length)render();
+  renderPickers();renderHeader();
+}
+function setMode(id){state.mode=id;renderPickers();renderHeader()}
+function setLang(id){
+  state.lang=id;document.documentElement.lang=id;document.documentElement.dir=id==='ar'?'rtl':'ltr';
+  stopSpeak();renderPickers();renderHeader();render();
+}
+async function ask(text){
+  text=(text||'').trim();
+  if(!text||state.busy)return;
+  stopSpeak();$('q').value='';
+  state.messages.push({role:'user',text});state.busy=true;render();
+  let r;
+  try{r=await Promise.resolve(engine.answer(text,{subject:state.subject,mode:state.mode,lang:state.lang}))}
+  catch(e){r={text:'Something went wrong while answering. Please try again.'}}
+  await delay(350);
+  state.busy=false;
+  if(r&&r.subject&&r.subject!==state.subject){setSubject(r.subject);state.messages.push({role:'note',text:'Subject switched to '+subjectName(r.subject)+' for this question'})}
+  state.messages.push({role:'baint',...(r||{text:'No answer was returned.'})});
+  render();
+  if(matchMedia('(min-width:861px)').matches)$('q').focus();
+}
+async function copyText(text,btn){
+  try{
+    if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(text);
+    else{const a=document.createElement('textarea');a.value=text;a.style.cssText='position:fixed;opacity:0';document.body.append(a);a.select();const ok=document.execCommand('copy');a.remove();if(!ok)throw 0}
+    flash(btn,'check',t('copied'),'ok');
+  }catch(e){flash(btn,'copy','Select and copy the answer','')}
+}
+function flash(btn,icon,label,cls){
+  const old=btn.cloneNode(true);
+  btn.innerHTML=ic(icon,14);btn.append(el('span','',label));if(cls)btn.classList.add(cls);
+  setTimeout(()=>{btn.className='action';btn.innerHTML=old.innerHTML},1400);
+}
+
+/* ---- Listen (text to speech) ---- */
+let speakingBtn=null;
+function stopSpeak(){if('speechSynthesis' in window)speechSynthesis.cancel();if(speakingBtn){speakingBtn.className='action';speakingBtn.innerHTML=ic('volume',14);speakingBtn.append(el('span','',t('listen')));speakingBtn=null}}
+function toggleSpeak(text,btn){
+  if(!('speechSynthesis' in window)){flash(btn,'volume','Voice not supported here','');return}
+  if(speakingBtn===btn){stopSpeak();return}
+  stopSpeak();
+  const u=new SpeechSynthesisUtterance(text);
+  const code=(LANGS.find(l=>l[0]===state.lang)||[])[2]||'en-US';u.lang=code;
+  const v=speechSynthesis.getVoices().find(x=>x.lang===code)||speechSynthesis.getVoices().find(x=>x.lang.startsWith(code.slice(0,2)));if(v)u.voice=v;
+  u.onend=u.onerror=()=>{if(speakingBtn===btn)stopSpeak()};
+  speakingBtn=btn;btn.className='action stop';btn.innerHTML=ic('stop',14);btn.append(el('span','',t('stop')));
+  speechSynthesis.speak(u);
+}
+if('speechSynthesis' in window)speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+
+/* ---- Mic (speech to text) ---- */
+let rec=null;
+function toggleMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const mic=$('micBtn'),form=$('askForm');
+  if(!SR){$('q').placeholder='Voice input is not supported in this browser.';setTimeout(renderHeader,2200);return}
+  if(state.listening&&rec){rec.stop();return}
+  rec=new SR();rec.lang=(LANGS.find(l=>l[0]===state.lang)||[])[2]||'en-US';rec.interimResults=false;
+  rec.onstart=()=>{state.listening=true;mic.classList.add('listening');form.classList.add('listening');renderHeader()};
+  const end=()=>{state.listening=false;mic.classList.remove('listening');form.classList.remove('listening');renderHeader()};
+  rec.onend=end;rec.onerror=end;
+  rec.onresult=e=>{const txt=e.results[0][0].transcript;$('q').value=txt;ask(txt)};
+  rec.start();
+}
+
+/* ---- Study reminder (browser notification when the learner leaves) ---- */
+let notified=false;
+async function askNotifyPermission(){try{if('Notification' in window&&Notification.permission==='default')await Notification.requestPermission()}catch(e){}}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'&&state.started&&!notified&&'Notification' in window&&Notification.permission==='granted'){
+    notified=true;try{new Notification('BAINT AI',{body:'Come back tomorrow to keep learning.'})}catch(e){}
+  }else if(document.visibilityState==='visible')notified=false;
+});
+
+/* ---- Setup sheet (mobile) ---- */
+const openSheet=()=>{$('scrim').hidden=false;$('doneSheet').focus()};
+const closeSheet=()=>{$('scrim').hidden=true;$('setupBtn').focus()};
+
+/* =====================================================================
+   7. START UP
+   ===================================================================== */
+function init(){
+  $('discLaunch').textContent=DISCLAIMER;$('discApp').textContent=DISCLAIMER;
+  $('reminderSide').innerHTML=ic('bell',13)+'<span>'+REMINDER+'</span>';
+  $('reminderSheet').innerHTML=ic('bell',13)+'<span>'+REMINDER+'</span>';
+  $('highlights').innerHTML=[['mic','Ask by voice'],['volume','Listen to answers'],['sliders','5 ways to explain']].map(([i,x])=>`<span>${ic(i,14)}${x}</span>`).join('');
+  $('micBtn').innerHTML=ic('mic',20);
+  document.querySelector('.iconbtn.send').innerHTML=ic('up',20);
+  $('setupBtn').innerHTML=ic('sliders',20);
+  $('closeSheet').innerHTML=ic('close',16);
+  renderPickers();renderHeader();render();
+
+  $('startBtn').onclick=()=>{
+    askNotifyPermission();state.started=true;
+    $('launch').hidden=true;$('app').hidden=false;$('q').focus({preventScroll:true});
+  };
+  $('askForm').onsubmit=e=>{e.preventDefault();ask($('q').value)};
+  $('micBtn').onclick=toggleMic;
+  $('setupBtn').onclick=openSheet;$('closeSheet').onclick=closeSheet;$('doneSheet').onclick=closeSheet;
+  $('scrim').onclick=e=>{if(e.target===$('scrim'))closeSheet()};
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('scrim').hidden)closeSheet()});
+}
+init();
+</script>
+
+<script>
+/* BAINT service-worker registration: requires HTTPS or localhost. */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js")
+      .then(function (reg) {
+        console.log("BAINT offline support registered:", reg.scope);
+      })
+      .catch(function (err) {
+        console.warn("BAINT service worker registration failed:", err);
+      });
+  });
+}
+</script>
+
+</body>
+</html>
