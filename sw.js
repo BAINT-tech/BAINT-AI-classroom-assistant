@@ -2,8 +2,8 @@
    - Online: always try the network first, so a new version shows up straight away.
    - Offline (or very slow network): use the saved copy, so the app still opens with no data.
    - Also lets notifications work on Android. */
-const CACHE = "baint-v47";
-const SHELL = ["./", "./index.html", "./lessons.js", "./solver.js", "./engine.js", "./logo.png"];
+const CACHE = "baint-v48";
+const SHELL = ["./", "./index.html", "./lessons.js", "./solver.js", "./numeric.js", "./engine.js", "./logo.png"];
 const NETWORK_WAIT_MS = 4000;
 
 self.addEventListener("install", event => {
