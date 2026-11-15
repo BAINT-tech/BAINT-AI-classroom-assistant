@@ -296,6 +296,9 @@ function answer0(question,ctx){
   if(/\b(another|more|different) (example|one|problem)\b/.test(n)&&lastQ){
     const r=answer0("example of "+lastQ,ctx);r._follow=1;return r;
   }
+  /* 0. numeric helpers (percent, unit conversion) work from any subject */
+  if(window.BAINT_NUMERIC){const nm=window.BAINT_NUMERIC.solve(q);
+    if(nm){const o={lead:"Let’s work it out step by step.",text:nm.text,suggestions:["Explain it differently","Explain Percentages","Solve 4x + 8 = 24"],topic:nm.topic};if(nm.subject!==subject)o.subject=nm.subject;return o}}
   /* 1. a real maths problem goes to the solver, from any subject */
   const looksMath=/\d\s*[-+*/^=×÷]|[-+*/^=×÷]\s*\d|\bx\s*=|\bsolve\b|\bcalculate\b|\bsimplify\b|\bfactori[sz]e\b/i.test(q);
   if((subject==="math"||looksMath)&&typeof window.baintSolve==="function"){
@@ -312,6 +315,7 @@ function answer0(question,ctx){
     if(!inSubject(found.l,subject))r.subject=found.l.subject;     // auto-switch subject; the app shows a "Subject switched" note
     return r;
   }
+  try{const k="baint_missing",a=JSON.parse(localStorage.getItem(k)||"[]");a.push({q:q.slice(0,120),subject,t:Date.now()});localStorage.setItem(k,JSON.stringify(a.slice(-100)))}catch(e){}
   /* 3. honest fallback with useful next steps */
   const here=suggest(subject);
   return {lead:"I do not have that one yet",
@@ -319,6 +323,6 @@ function answer0(question,ctx){
       subjName(subject)+" has very few lessons so far. Try a different subject, or ask about its main ideas in simple words.",
     suggestions:here.length?here.slice(0,4):["Explain Algebra","Explain Photosynthesis","Explain Democracy"]};
 }
-window.BAINT_ENGINE={answer,suggest,solverLoaded:prev.solverLoaded};
+window.BAINT_ENGINE={answer,suggest,reset(){for(const k in seen)delete seen[k];lastQ=null},solverLoaded:prev.solverLoaded};
 window.BAINT_LOCAL_STATUS=Object.assign(window.BAINT_LOCAL_STATUS||{},{lessonsLoaded:lessons().length,engine:"v2"});
 })();
