@@ -79,7 +79,7 @@ const inSubject=(l,s)=>l.subject===s||(Array.isArray(l.also)&&l.also.indexOf(s)>
 /* strip question wording so "what are the advantages of algebra" scores on "algebra" */
 function core(q){
   return norm(q).replace(/^(please |can you |could you |kindly )+/,"")
-    .replace(/^(explain|define|describe|tell me about|tell me|what is|what are|what's|whats|what does|how does|how do|how to|why is|why do|give me|give|show me|teach me|help me with|i want to learn|i don't understand|i dont understand)\s+/,"")
+    .replace(/^(explain|define|describe|state|outline|tell me about|tell me|what is|what are|what's|whats|what does|how does|how do|how to|why is|why do|give me|give|show me|teach me|help me with|i want to learn|i don't understand|i dont understand)\s+/,"")
     .replace(/\b(advantages?|disadvantages?|benefits?|drawbacks?|examples?|uses?|meaning|definition|summary|steps?)\s+(of|for|in)\s+/g,"")
     .replace(/\b(an?|the)\s+/g," ").replace(/\s+/g," ").trim();
 }
@@ -122,19 +122,21 @@ function detect(q,subject){
   return top;
 }
 
-/* last-resort: find the lesson whose full text uses the student's words most */
-function looseMatch(q,subject){
-  const w=toks(core(q)).filter(x=>!STOP.has(x));
-  if(!w.length)return null;
-  let top=null;
+/* weak matches are never shown as the answer, only offered as "closest topics" */
+const GENERIC=new Set("world first last many much country countries people person man woman name year time thing good bad large small number president minister leader".split(" "));
+function related(q,subject){
+  const w=toks(core(q)).filter(x=>!STOP.has(x)&&!GENERIC.has(x));
+  if(!w.length)return [];
+  const out=[];
   for(const l of lessons()){
-    const txt=new Set(toks([l.title,l.meaning,l.think,(l.steps||[]).join(" "),l.example,l.uses,l.summary,(l.adv||[]).join(" "),(l.dis||[]).join(" ")].join(" ")));
-    const hits=w.filter(x=>txt.has(x)).length;
-    const s=hits/w.length+(inSubject(l,subject)?.05:0);
-    if(w.length>=2&&hits>=2&&s>=.5&&(!top||s>top.s))top={l,s};
+    const pt=new Set(toks([l.title].concat(l.aliases||[]).join(" ")));
+    const hits=w.filter(x=>pt.has(x)||[...pt].some(z=>close(x,z))).length;
+    if(hits)out.push({t:l.title,s:hits+(inSubject(l,subject)?.5:0)});
   }
-  return top&&top.l;
+  return out.sort((x,y)=>y.s-x.s).slice(0,3).map(x=>x.t);
 }
+/* questions BAINT cannot answer offline: live news, office-holders, general trivia */
+const OUT_OF_SCOPE=/\b(who (is|was|are|were) (the )?(current |present |first |last |new )?(president|prime minister|king|queen|governor|minister|ceo|leader|winner)|how many (countries|people|states|planets in)|current affairs|latest news|breaking news|news today|who won|score of|weather|price of|capital of|population of|what time)\b/;
 
 /* ---------- intent: what is the student really asking for? ---------- */
 const INTENTS=[
@@ -266,7 +268,7 @@ const subjName=s=>({math:"Mathematics",english:"English",biology:"Biology",chemi
 function suggest(subject){
   return lessons().filter(x=>inSubject(x,subject)).slice(0,6).map(x=>"Explain "+x.title);
 }
-let lastQ=null;
+let lastQ=null, lastFound=null;
 function answer(question,ctx){
   const r=answer0(question,ctx);
   if(r&&!r._follow&&question&&String(question).trim().length>2&&!/^I do not have/.test(r.lead||""))lastQ=String(question).trim();
@@ -274,7 +276,7 @@ function answer(question,ctx){
   return r;
 }
 function answer0(question,ctx){
-  ctx=ctx||{};
+  ctx=ctx||{};lastFound=null;
   const subject=ctx.subject||"math", q=String(question||"").trim();
   if(!q)return {text:"Type a topic or question and I will explain it."};
   const n=norm(q);
@@ -308,21 +310,25 @@ function answer0(question,ctx){
   }
   if(looksMath){const b=basicMath(q);if(b){const o={lead:"Let’s solve it step by step.",text:b.text,suggestions:["Explain it differently","Solve 4x + 8 = 24","Explain Algebra"],topic:b.topic};if(subject!=="math")o.subject="math";return o}}
   /* 2. subject + topic detection across the whole library */
-  const found=detect(q,subject)||(()=>{const l=looseMatch(q,subject);return l?{l,term:null,loose:true}:null})();
+  const found=detect(q,subject);
+  if(!found&&OUT_OF_SCOPE.test(n)){
+    try{const k="baint_missing",a=JSON.parse(localStorage.getItem(k)||"[]");a.push({q:q.slice(0,120),subject,t:Date.now(),why:"out-of-scope"});localStorage.setItem(k,JSON.stringify(a.slice(-100)))}catch(e){}
+    return {lead:"That is outside BAINT’s lessons",text:"I cover school lesson topics that are built into BAINT. I do not have live news, current office-holders or general facts, and I would rather not guess. Ask me about a topic from your subject instead.",suggestions:suggest(subject).slice(0,3)};
+  }
   if(found){
+    lastFound={id:found.l.id,term:found.term};
     const r=build(found.l,ctx,found,q);
-    if(found.loose)r.lead="Closest lesson: "+(r.lead||found.l.title);
     if(!inSubject(found.l,subject))r.subject=found.l.subject;     // auto-switch subject; the app shows a "Subject switched" note
     return r;
   }
   try{const k="baint_missing",a=JSON.parse(localStorage.getItem(k)||"[]");a.push({q:q.slice(0,120),subject,t:Date.now()});localStorage.setItem(k,JSON.stringify(a.slice(-100)))}catch(e){}
   /* 3. honest fallback with useful next steps */
-  const here=suggest(subject);
+  const here=suggest(subject), near=related(q,subject).map(t=>"Explain "+t);
   return {lead:"I do not have that one yet",
-    text:here.length?"I could not match that to a lesson in "+subjName(subject)+". Try the topic name or one key term, or pick one of these:":
+    text:near.length?"I do not have a lesson on that yet, and I will not guess. These are the closest topics I do have:":here.length?"I could not match that to a lesson in "+subjName(subject)+". Try the topic name or one key term, or pick one of these:":
       subjName(subject)+" has very few lessons so far. Try a different subject, or ask about its main ideas in simple words.",
-    suggestions:here.length?here.slice(0,4):["Explain Algebra","Explain Photosynthesis","Explain Democracy"]};
+    suggestions:near.length?near:here.length?here.slice(0,4):["Explain Algebra","Explain Photosynthesis","Explain Democracy"]};
 }
-window.BAINT_ENGINE={answer,suggest,reset(){for(const k in seen)delete seen[k];lastQ=null},solverLoaded:prev.solverLoaded};
+window.BAINT_ENGINE={answer,suggest,lastFound:()=>lastFound,reset(){for(const k in seen)delete seen[k];lastQ=null},solverLoaded:prev.solverLoaded};
 window.BAINT_LOCAL_STATUS=Object.assign(window.BAINT_LOCAL_STATUS||{},{lessonsLoaded:lessons().length,engine:"v2"});
 })();
