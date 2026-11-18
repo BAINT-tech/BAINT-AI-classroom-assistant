@@ -2,8 +2,8 @@
    - Online: always try the network first, so a new version shows up straight away.
    - Offline (or very slow network): use the saved copy, so the app still opens with no data.
    - Also lets notifications work on Android. */
-const CACHE = "baint-v53";
-const SHELL = ["./", "./index.html", "./lessons.js", "./solver.js", "./lessons-extra.js", "./numeric.js", "./engine.js", "./blde.js", "./memory.js", "./casestudy.js", "./lessons-approved.js", "./review.html", "./logo.png"];
+const CACHE = "baint-v54";
+const SHELL = ["./", "./index.html", "./lessons.js", "./solver.js", "./lessons-extra.js", "./numeric.js", "./engine.js", "./blde.js", "./memory.js", "./casestudy.js", "./chats.js", "./lessons-approved.js", "./review.html", "./logo.png"];
 const NETWORK_WAIT_MS = 4000;
 const RES_CACHE = "baint-resources-v1";            // saved answers from open educational resources (BLDE)
 const RES_HOSTS = /^en\.(wikipedia|wikibooks)\.org$/;
