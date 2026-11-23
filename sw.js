@@ -2,8 +2,8 @@
    - Online: always try the network first, so a new version shows up straight away.
    - Offline (or very slow network): use the saved copy, so the app still opens with no data.
    - Also lets notifications work on Android. */
-const CACHE = "baint-v58";
-const SHELL = ["./", "./index.html", "./lessons.js", "./solver.js", "./lessons-extra.js", "./numeric.js", "./engine.js", "./blde.js", "./memory.js", "./lessons-aerospace.js", "./lessons-phy101.js", "./lessons-chm101.js", "./lessons-core2.js", "./curriculum.js", "./testbook.js", "./casestudy.js", "./build.html", "./build-core.js", "./build-store.js", "./chats.js", "./lessons-approved.js", "./review.html", "./logo.png"];
+const CACHE = "baint-v56";
+const SHELL = ["./", "./index.html", "./lessons.js", "./solver.js", "./lessons-extra.js", "./numeric.js", "./engine.js", "./blde.js", "./memory.js", "./lessons-aerospace.js", "./lessons-phy101.js", "./lessons-core2.js", "./curriculum.js", "./testbook.js", "./casestudy.js", "./chats.js", "./lessons-approved.js", "./review.html", "./logo.png"];
 const NETWORK_WAIT_MS = 4000;
 const RES_CACHE = "baint-resources-v1";            // saved answers from open educational resources (BLDE)
 const RES_HOSTS = /^en\.(wikipedia|wikibooks)\.org$/;
