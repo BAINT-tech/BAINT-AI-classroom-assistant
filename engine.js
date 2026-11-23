@@ -117,7 +117,7 @@ function detect(q,subject){
     const here=inSubject(l,subject);
     if(!here&&(r.score<105||r.cov<0.6))continue;      // only jump to another subject on a clear, full match
     const adj=r.score+(here?10:0);
-    if(!top||adj>top.adj)top={l,adj,raw:r.score,term:r.term};
+    if(!top||adj>=top.adj)top={l,adj,raw:r.score,term:r.term};   // on a tie the later (more specific) lesson wins
   }
   return top;
 }
@@ -264,7 +264,7 @@ function basicMath(q){
 
 /* ---------- main entry ---------- */
 const prev=window.BAINT_ENGINE||{};
-const subjName=s=>({math:"Mathematics",english:"English",biology:"Biology",chemistry:"Chemistry",history:"History",computer:"Computer Science",biochemistry:"Biochemistry",histology:"Histology",enzymology:"Enzymology",purine_pyrimidine:"Purine & Pyrimidine",cholesterol:"Cholesterol Biosynthesis",engineering:"Engineering",physics:"Physics",economics:"Economics",geography:"Geography",government:"Government"})[s]||s;
+const subjName=s=>({math:"Mathematics",english:"English",biology:"Biology",chemistry:"Chemistry",history:"History",computer:"Computer Science",biochemistry:"Biochemistry",histology:"Histology",enzymology:"Enzymology",purine_pyrimidine:"Purine & Pyrimidine",cholesterol:"Cholesterol Biosynthesis",engineering:"Engineering",aerospace:"Aerospace Engineering",physics:"Physics",economics:"Economics",geography:"Geography",government:"Government"})[s]||s;
 function suggest(subject){
   return lessons().filter(x=>inSubject(x,subject)).slice(0,6).map(x=>"Explain "+x.title);
 }
