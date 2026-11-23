@@ -11,22 +11,7 @@ const inner=E.answer.bind(E);
 /* [code, title, units, status, lectureHours, practicalHours, source, subject, typical topics (unconfirmed)] */
 const C=[
  ["GST 111","Communication in English",2,"C",15,45,"CCMAS","english",["Grammar and sentence structure","Paragraph and essay writing","Comprehension and summary","Vocabulary and punctuation"]],
- ["CHM 101","General Chemistry I",2,"C",30,0,"CCMAS","chemistry",[
-  "1. Atoms, molecules, elements, compounds and mixtures",
-  "2. Modern atomic theory",
-  "3. Electronic theory of atoms",
-  "4. Chemical bonding and intermolecular forces",
-  "5. Chemical kinetics",
-  "6. Kinetic theory of matter and gas laws",
-  "7. Thermochemistry and thermodynamics",
-  "8. Redox reaction and electrochemistry",
-  "9. Chemical equilibrium",
-  "10. Wave–particle duality (Quantum and atomic number)",
-  "11. Kinetic theory of matter",
-  "12. Chemical reaction",
-  "13. Atomic theory and nature of atoms",
-  "14. Stoichiometry",
-  "15. Chemical equilibrium"],"CHM 101 course outline"],
+ ["CHM 101","General Chemistry I",2,"C",30,0,"CCMAS","chemistry",["Atomic structure","Periodic table","Chemical bonding","States of matter","Stoichiometry and the mole","Acids, bases and pH"]],
  ["CHM 107","General Practical Chemistry I",1,"C",0,45,"CCMAS","chemistry",["Laboratory safety","Measurement and errors","Titration","Qualitative tests"]],
  ["MTH 101","Elementary Mathematics I",2,"C",30,0,"CCMAS","math",["Sets and real numbers","Algebraic equations and quadratics","Binomial theorem","Sequences and series","Trigonometry"]],
  ["PHY 101","General Physics I",2,"C",30,0,"CCMAS","physics",[
