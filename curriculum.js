@@ -11,10 +11,35 @@ const inner=E.answer.bind(E);
 /* [code, title, units, status, lectureHours, practicalHours, source, subject, typical topics (unconfirmed)] */
 const C=[
  ["GST 111","Communication in English",2,"C",15,45,"CCMAS","english",["Grammar and sentence structure","Paragraph and essay writing","Comprehension and summary","Vocabulary and punctuation"]],
- ["CHM 101","General Chemistry I",2,"C",30,0,"CCMAS","chemistry",["Atomic structure","Periodic table","Chemical bonding","States of matter","Stoichiometry and the mole","Acids, bases and pH"]],
+ ["CHM 101","General Chemistry I",2,"C",30,0,"CCMAS","chemistry",[
+  "1. Atoms, molecules, elements, compounds and mixtures",
+  "2. Modern atomic theory",
+  "3. Electronic theory of atoms",
+  "4. Chemical bonding and intermolecular forces",
+  "5. Chemical kinetics",
+  "6. Kinetic theory of matter and gas laws",
+  "7. Thermochemistry and thermodynamics",
+  "8. Redox reaction and electrochemistry",
+  "9. Chemical equilibrium",
+  "10. Wave–particle duality (Quantum and atomic number)",
+  "11. Kinetic theory of matter",
+  "12. Chemical reaction",
+  "13. Atomic theory and nature of atoms",
+  "14. Stoichiometry",
+  "15. Chemical equilibrium"],"CHM 101 course outline"],
  ["CHM 107","General Practical Chemistry I",1,"C",0,45,"CCMAS","chemistry",["Laboratory safety","Measurement and errors","Titration","Qualitative tests"]],
  ["MTH 101","Elementary Mathematics I",2,"C",30,0,"CCMAS","math",["Sets and real numbers","Algebraic equations and quadratics","Binomial theorem","Sequences and series","Trigonometry"]],
- ["PHY 101","General Physics I",2,"C",30,0,"CCMAS","physics",["Units and dimensions","Kinematics","Newton's laws","Work, energy and power","Momentum","Heat and temperature","Waves"]],
+ ["PHY 101","General Physics I",2,"C",30,0,"CCMAS","physics",[
+  "1. Measurements: Units & Dimensions, Measurement Errors",
+  "2. Scalars & Vectors: Scalar Quantities, Vector Quantities, Vector Addition",
+  "3. Motion: Distance & Displacement, Speed & Velocity, Acceleration, Motion Graphs",
+  "4. Forces & Laws of Motion: Newton's Laws, Friction, Applications of Force",
+  "5. Momentum & Collision: Linear Momentum, Conservation of Momentum, Types of Collision",
+  "6. Equilibrium of Forces: Conditions for Equilibrium, Resultant Forces, Moments & Torque",
+  "7. Space & Time: Position & Reference Frames, Time Measurement, Relative Motion",
+  "8. Gravitational Force: Universal Law of Gravitation, Acceleration Due to Gravity, Gravitational Field",
+  "9. Centre of Mass & Linear Momentum: Centre of Mass, Centre of Gravity, Conservation of Linear Momentum",
+  "10. Rotational Motion: Angular Displacement, Angular Velocity & Acceleration, Torque, Moment of Inertia"],"PHY 101 2026/2027 course outline"],
  ["PHY 107","General Practical Physics I",1,"C",0,45,"CCMAS","physics",["Measurement and error analysis","Vernier callipers and micrometer","Simple pendulum","Graph plotting"]],
  ["GET 101","Engineer in Society",1,"C",15,0,"CCMAS","engineering",["Engineering profession and history","Ethics and safety","COREN and the NSE","Sustainability"]],
  ["AAE 101","Introduction to Aerospace Systems Engineering 1",2,"C",30,0,"CCMAS","aerospace",["History of flight","Atmosphere","Forces of flight","Aircraft components and controls","Propulsion","Spaceflight basics"]],
@@ -25,13 +50,13 @@ const norm=s=>String(s||"").toLowerCase();
 const find=code=>C.find(c=>c[0].replace(" ","")===code.replace(/\s|-/g,"").toUpperCase());
 const SUBJ_NAME={english:"English",chemistry:"Chemistry",math:"Mathematics",physics:"Physics",engineering:"Engineering",aerospace:"Aerospace Engineering"};
 function card(c){
-  const [code,title,units,status,lh,ph,src,subject,topics]=c;
+  const [code,title,units,status,lh,ph,src,subject,topics,official]=c;
   const hrs=[lh?lh+" lecture hours":"",ph?ph+" practical hours":""].filter(Boolean).join(", ");
   return {lead:code+"  ·  "+title,
     text:units+" unit"+(units>1?"s":"")+", "+(status==="C"?"compulsory":status)+(hrs?", "+hrs:"")+". Source: "+src+". Part I, Harmattan semester. Subject in BAINT: "+SUBJ_NAME[subject]+".",
     steps:topics.length?topics.map(t=>({text:t})):[{text:"I do not have the official outline for this course yet. Send it and I will add it."}],
-    hint:topics.length?"These topics are typical for this course and are NOT from the official outline. Confirm with your lecturer’s course outline.":"Course title, units and hours are from your course table.",
-    subject,suggestions:["Test me on "+code,"Explain "+(topics[0]||SUBJ_NAME[subject])].slice(0,3),curriculum:code};
+    hint:official?"Topics are from the "+official+" you supplied.":topics.length?"These topics are typical for this course and are NOT from the official outline. Confirm with your lecturer’s course outline.":"Course title, units and hours are from your course table.",
+    subject,suggestions:["Test me on "+code,"Explain "+(official?topics[0].replace(/^\d+\.\s*/,"").split(":")[0]:(topics[0]||SUBJ_NAME[subject]))].slice(0,3),curriculum:code};
 }
 E.answer=function(question,ctx){
   const q=String(question||"").trim();
