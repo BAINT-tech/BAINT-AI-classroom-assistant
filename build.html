@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>BAINT · Build Mode</title>
+<style>
+:root{--blue:#2563eb;--blue-d:#1d4ed8;--soft:#eaf1ff;--ink:#0f172a;--mute:#64748b;--line:#e2e8f0;--bg:#f6f8fc;--ok:#0f766e;--bad:#b91c1c;--warn:#b45309}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font:15px/1.5 Inter,system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;height:100dvh}
+header{background:#fff;border-bottom:1px solid var(--line);padding:8px 12px;display:flex;align-items:center;gap:8px;flex:none}
+.logo{width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.title{flex:1;min-width:0;line-height:1.2}.title b{display:block}.title small{color:var(--mute);font-size:12px}
+button,select,input{font:inherit;color:inherit}
+button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;cursor:pointer}
+button.p{background:var(--blue);border-color:var(--blue);color:#fff}button.p:active{background:var(--blue-d)}
+button.g{background:var(--soft);border-color:#cfe0ff;color:var(--blue-d)}button.bad{color:var(--bad)}button:disabled{opacity:.5}
+a.back{color:var(--blue-d);text-decoration:none;font-size:13px;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:#16a34a;flex:none}.dot.off{background:#f59e0b}
+nav{display:flex;background:#fff;border-bottom:1px solid var(--line);flex:none}
+nav button{flex:1;border:0;border-radius:0;padding:12px 4px;font-weight:600;color:var(--mute);background:#fff;border-bottom:3px solid transparent}
+nav button.on{color:var(--blue-d);border-bottom-color:var(--blue)}
+main{flex:1;min-height:0;position:relative}
+section{position:absolute;inset:0;display:none;flex-direction:column;min-height:0}section.on{display:flex}
+.pad{padding:12px;overflow:auto;flex:1;min-height:0}
+/* BUILD */
+.files{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--line);flex:none}
+.files button{white-space:nowrap;padding:5px 12px;font-size:13px}.files button.on{background:var(--soft);border-color:var(--blue);color:var(--blue-d);font-weight:600}
+.tools{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;flex:none}.tools button{white-space:nowrap;font-size:13px;padding:6px 12px}
+.ed{display:flex;flex:1;min-height:120px;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+#gut{width:38px;flex:none;margin:0;padding:10px 6px 10px 0;text-align:right;color:#94a3b8;background:#f8fafc;border-right:1px solid var(--line);overflow:hidden;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre;user-select:none}
+#ed{flex:1;min-width:0;border:0;outline:0;resize:none;padding:10px;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;tab-size:2;white-space:pre;overflow:auto;background:#fff;color:var(--ink)}
+#assist{flex:none;max-height:42%;overflow:auto;padding:8px 10px;background:var(--bg)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0}
+.card h4{margin:0 0 4px;font-size:15px}.card p{margin:4px 0}.card ul{margin:4px 0;padding-left:20px}.card li{margin:2px 0}
+.card.err{border-color:#fecaca;background:#fff7f7}.card.warn{border-color:#fde68a;background:#fffbeb}.card.okc{border-color:#bbf7d0;background:#f0fdf4}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.k{font-size:12px;color:var(--mute);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:8px}
+code,pre.c{font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;background:#f1f5f9;border-radius:8px}code{padding:1px 5px}pre.c{padding:8px 10px;overflow:auto;margin:6px 0;white-space:pre-wrap;word-break:break-word}
+.ln{display:grid;grid-template-columns:34px 1fr;gap:6px;padding:5px 0;border-top:1px solid var(--line)}.ln b{color:var(--mute);font-weight:500}
+/* TEST */
+.seg{display:flex;gap:6px;padding:8px 10px;flex:none;align-items:center}
+#frameBox{flex:1;min-height:140px;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}iframe{width:100%;height:100%;border:0;background:#fff}
+#con{flex:none;height:30%;min-height:90px;overflow:auto;background:#0f172a;color:#e2e8f0;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:8px 10px}
+#con div{white-space:pre-wrap;word-break:break-word}#con .error{color:#fca5a5}#con .warn{color:#fcd34d}#con .sys{color:#7dd3fc}
+#tassist{flex:none;max-height:40%;overflow:auto;padding:0 10px 8px;background:var(--bg)}
+/* LEARN */
+input[type=search],input[type=text]{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px 14px;font-size:16px;background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-end;z-index:20}.scrim.on{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:85dvh;overflow:auto;padding:14px 14px 20px}
+.sheet h3{margin:0 0 8px}.item{display:flex;align-items:center;gap:6px;padding:9px 4px;border-top:1px solid var(--line)}.item .n{flex:1;min-width:0}.item small{color:var(--mute);display:block}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:9px 16px;border-radius:999px;font-size:14px;display:none;z-index:30;max-width:90%}
+.note{font-size:12.5px;color:var(--mute);margin:6px 0}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html" aria-label="Back to BAINT">← BAINT</a>
+  <div class="logo">B</div>
+  <div class="title"><b>Build Mode</b><small id="pname">No project</small></div>
+  <span class="dot" id="net" title="Online"></span>
+  <button id="projBtn" type="button">Projects</button>
+</header>
+<nav><button id="tLearn" type="button">LEARN</button><button id="tBuild" class="on" type="button">BUILD</button><button id="tTest" type="button">TEST</button></nav>
+<main>
+  <!-- LEARN -->
+  <section id="sLearn"><div class="pad">
+    <input id="dq" type="search" placeholder="Search offline docs: flexbox, event, loop…" aria-label="Search offline docs">
+    <div class="chips" id="chips"></div>
+    <div id="dout"></div>
+    <div class="k">Ask BAINT about programming</div>
+    <input id="aq" type="text" placeholder="e.g. What is an algorithm?" aria-label="Ask a programming question">
+    <div class="row"><button class="p" id="aBtn" type="button">Ask</button></div>
+    <div id="aout"></div>
+    <p class="note">Everything on this tab works offline. “Ask BAINT” uses the lesson library already on your device. Python is not installed yet (optional download later).</p>
+  </div></section>
+  <!-- BUILD -->
+  <section id="sBuild" class="on">
+    <div class="files" id="files"></div>
+    <div class="tools">
+      <button class="p" id="run" type="button">▶ Run</button><button id="check" type="button">Check</button><button id="expl" type="button">Explain code</button>
+      <button id="impr" type="button">Improve</button><button id="gen" type="button">Generate</button><button id="save" type="button">Save</button><button id="exp" type="button">Export ZIP</button>
+    </div>
+    <div class="ed"><pre id="gut">1</pre><textarea id="ed" wrap="off" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" aria-label="Code editor"></textarea></div>
+    <div id="assist"></div>
+  </section>
+  <!-- TEST -->
+  <section id="sTest">
+    <div class="seg"><button class="g" id="mPrev" type="button">Preview page</button><button id="mJs" type="button">Run JavaScript only</button><button class="p" id="again" type="button">▶ Run again</button></div>
+    <div id="frameBox"><iframe id="frame" sandbox="allow-scripts" title="Preview"></iframe></div>
+    <div id="con" aria-live="polite"></div>
+    <div id="tassist"></div>
+  </section>
+</main>
+<div class="scrim" id="projScrim"><div class="sheet"><h3>Projects</h3>
+  <div class="row"><select id="tplSel" aria-label="Starter"></select><button class="p" id="newProj" type="button">New project</button><button id="closeProj" type="button">Close</button></div>
+  <div id="projList"></div></div></div>
+<div id="toast" role="status"></div>
+<script src="build-core.js"></script>
+<script src="build-store.js"></script>
+<script>
+(function(){
+"use strict";
+const B=window.OKE_BUILD,S=window.OKE_STORE,$=id=>document.getElementById(id);
+let P=null,saveTimer=null,previewMap=[],lastError=null,mode="preview",worker=null,workerTimer=null;
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display="none",2200)}
+function tab(n){["Learn","Build","Test"].forEach(x=>{$("s"+x).classList.toggle("on",x===n);$("t"+x).classList.toggle("on",x===n)})}
+/* ---------- projects ---------- */
+async function openProject(id){
+  const p=await S.get(id);if(!p)return;P=p;if(!P.files[P.active])P.active=Object.keys(P.files)[0];
+  try{localStorage.setItem("oke_last_project",id)}catch(e){}
+  $("pname").textContent=P.name;drawFiles();loadEditor();$("assist").textContent="";clearCon();
+}
+async function createProject(tpl,name){
+  const t=B.template(tpl)||B.template("hello");
+  const p=await S.save({name:name||t.name,files:t.files,active:"index.html"});await openProject(p.id);return p;
+}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(doSave,1200)}
+async function doSave(){if(!P)return;P=await S.save(P)}
+async function drawProjects(){
+  const list=await S.list(),box=$("projList");box.textContent="";
+  if(!list.length)box.append(el("p","note","No projects yet."));
+  list.forEach(p=>{const r=el("div","item"),n=el("div","n");n.append(el("b","",p.name),el("small","",p.count+" files · "+new Date(p.updated).toLocaleString()));
+    const o=el("button","g","Open");o.onclick=async()=>{await openProject(p.id);$("projScrim").classList.remove("on")};
+    const d=el("button","bad","Delete");d.onclick=async()=>{if(confirm("Delete “"+p.name+"”? This cannot be undone. Export a copy first if you want to keep it.")){await S.remove(p.id);if(P&&P.id===p.id){P=null;$("pname").textContent="No project";$("ed").value="";$("files").textContent=""}drawProjects()}};
+    r.append(n,o,d);box.append(r)});
+}
+/* ---------- editor ---------- */
+function loadEditor(){$("ed").value=P?P.files[P.active]||"":"";gutter()}
+function gutter(){const n=($("ed").value.match(/\n/g)||[]).length+1;let s="";for(let i=1;i<=n;i++)s+=i+"\n";$("gut").textContent=s;$("gut").scrollTop=$("ed").scrollTop}
+function drawFiles(){
+  const box=$("files");box.textContent="";if(!P)return;
+  Object.keys(P.files).forEach(n=>{const b=el("button",n===P.active?"on":"",n);b.onclick=()=>{P.active=n;drawFiles();loadEditor()};box.append(b)});
+  const add=el("button","","+ File");add.onclick=()=>{const n=(prompt("New file name (for example page2.html, extra.js, more.css):")||"").trim();if(!n)return;if(!/^[\w.-]+\.(html|css|js|json|txt|md)$/i.test(n)){toast("Use a simple name ending in .html .css .js .json .txt or .md");return}if(P.files[n]!==undefined){toast("That file already exists");return}P.files[n]="";P.active=n;drawFiles();loadEditor();scheduleSave()};box.append(add);
+  const more=el("button","","⋯");more.onclick=()=>{const a=prompt("Type RENAME or DELETE for “"+P.active+"”:","");if(!a)return;
+    if(/^delete$/i.test(a)){if(Object.keys(P.files).length<2){toast("A project needs at least one file");return}if(confirm("Delete the file “"+P.active+"”?")){delete P.files[P.active];P.active=Object.keys(P.files)[0];drawFiles();loadEditor();scheduleSave()}}
+    else if(/^rename$/i.test(a)){const n=(prompt("New name for “"+P.active+"”:")||"").trim();if(!n||P.files[n]!==undefined)return;P.files[n]=P.files[P.active];delete P.files[P.active];P.active=n;drawFiles();scheduleSave()}};box.append(more);
+}
+$("ed").addEventListener("input",()=>{if(!P)return;P.files[P.active]=$("ed").value;gutter();scheduleSave()});
+$("ed").addEventListener("scroll",()=>{$("gut").scrollTop=$("ed").scrollTop});
+$("ed").addEventListener("keydown",e=>{if(e.key==="Tab"){e.preventDefault();const t=$("ed"),s=t.selectionStart;t.value=t.value.slice(0,s)+"  "+t.value.slice(t.selectionEnd);t.selectionStart=t.selectionEnd=s+2;t.dispatchEvent(new Event("input"))}});
+/* ---------- assistant cards ---------- */
+function listEl(arr){const u=el("ul");arr.forEach(x=>u.append(el("li","",x)));return u}
+function applyFixUI(card,fix,after){
+  const b=el("button","p","Apply fix: "+fix.label);
+  b.onclick=()=>{const G=B.applyFix(P.files,fix);if(!G){toast("I could not apply that automatically. Edit it by hand.");return}
+    if(!confirm("Apply this change?\n\n"+fix.label)){return}
+    P.files=G;loadEditor();drawFiles();scheduleSave();b.disabled=true;toast("Fix applied. Run again to test it.");if(after)after()};
+  return b;
+}
+function showError(target,err){
+  const x=B.explainError(err,P?P.files:{}),c=el("div","card err");
+  c.append(el("h4","","⚠ "+x.title));c.append(el("p","",x.plain));
+  if(x.line)c.append(el("p","note","Where: "+(x.file||"")+(x.line?" line "+x.line:"")));
+  c.append(el("div","k","Why this happens"),listEl(x.why));c.append(el("div","k","How to fix it"),listEl(x.how));
+  const r=el("div","row");if(x.fix)r.append(applyFixUI(c,x.fix,()=>{}));
+  const go=el("button","g","Go to code");go.onclick=()=>{if(x.file&&P.files[x.file]!==undefined){P.active=x.file;drawFiles();loadEditor();tab("Build");const t=$("ed"),L=B&&x.line?x.line:1,pos=t.value.split("\n").slice(0,L-1).join("\n").length;t.focus();t.setSelectionRange(pos,pos);t.scrollTop=Math.max(0,(L-3)*21)}else tab("Build")};r.append(go);
+  const pill=el("p","note","Confidence: "+x.confidence+(x.confidence==="low"?" (I am not sure, so treat this as a hint)":""));c.append(pill,r);
+  target.prepend(c);
+}
+function runCheck(target){
+  const out=B.check(P.files);target.textContent="";
+  if(!out.length){const c=el("div","card okc");c.append(el("h4","","✓ No problems found"),el("p","","I checked brackets, element ids, links between files and common mistakes. This does not prove the code works. Run it to be sure."));target.append(c);return}
+  out.forEach(i=>{const c=el("div","card "+(i.level==="error"?"err":"warn"));c.append(el("h4","",(i.level==="error"?"✗ ":"! ")+i.file+(i.line?" · line "+i.line:"")),el("p","",i.msg));
+    if(i.fix){const r=el("div","row");r.append(applyFixUI(c,i.fix,()=>runCheck(target)));c.append(r)}target.append(c)});
+}
+function explainCodeUI(target){
+  const rows=B.explainCode(P.active,P.files[P.active]||"");target.textContent="";
+  const c=el("div","card");c.append(el("h4","","What “"+P.active+"” does"));
+  if(!rows.length)c.append(el("p","","Nothing to explain yet. Write some code first."));
+  rows.slice(0,80).forEach(r=>{const d=el("div","ln");d.append(el("b","",r.line),(()=>{const w=el("div");w.append(el("code","",r.code.slice(0,70)),el("div","",r.meaning));return w})());c.append(d)});
+  if(rows.length>80)c.append(el("p","note","Showing the first 80 lines."));
+  c.append(el("p","note","These explanations come from pattern rules, not a language model. If a line is unusual they may be general."));target.append(c);
+}
+function improveUI(target){
+  const out=B.improve(P.files);target.textContent="";
+  if(!out.length){const c=el("div","card okc");c.append(el("h4","","✓ No suggestions"),el("p","","I found nothing to improve with my current rules."));target.append(c);return}
+  out.forEach(i=>{const c=el("div","card");c.append(el("h4","",i.file+(i.line?" · line "+i.line:"")),el("p","",i.msg));
+    if(i.patch){const r=el("div","row");r.append(applyFixUI(c,i.patch,()=>improveUI(target)));c.append(r)}target.append(c)});
+}
+/* ---------- TEST: preview and safe JavaScript ---------- */
+function clearCon(){$("con").textContent="";$("tassist").textContent="";lastError=null}
+function conLine(level,text){const d=el("div",level,text);$("con").append(d);$("con").scrollTop=1e9}
+function stopWorker(){if(worker){worker.terminate();worker=null}clearTimeout(workerTimer)}
+function runPreview(){
+  stopWorker();clearCon();const r=B.buildPreview(P.files);previewMap=r.map;
+  $("frame").style.display="";conLine("sys","Preview started. Console output and errors appear here.");$("frame").srcdoc=r.html;
+}
+function runJS(){
+  stopWorker();clearCon();$("frame").style.display="none";
+  const names=Object.keys(P.files).filter(n=>B.ext(n)==="js"),file=B.ext(P.active)==="js"?P.active:names[0];
+  if(!file){conLine("error","No JavaScript file to run.");return}
+  conLine("sys","Running "+file+" in an isolated worker (stops after 3 seconds)…");
+  let url;try{url=URL.createObjectURL(new Blob([B.workerSource(P.files[file])],{type:"text/javascript"}));worker=new Worker(url)}catch(e){conLine("error","This browser cannot start a worker: "+e.message);return}
+  worker.onmessage=e=>{const m=e.data||{};
+    if(m.type==="console")conLine(m.level==="log"||m.level==="info"?"":m.level,m.text);
+    else if(m.type==="error"){lastError={message:m.message,file,line:m.line};conLine("error","Error"+(m.line?" (line "+m.line+")":"")+": "+m.message);showError($("tassist"),lastError);stopWorker()}
+    else if(m.type==="done"){conLine("sys","Finished.");stopWorker()}};
+  worker.onerror=e=>{lastError={message:e.message||"Script error",file,line:e.lineno?e.lineno-1:0};conLine("error",lastError.message);showError($("tassist"),lastError);stopWorker()};
+  workerTimer=setTimeout(()=>{stopWorker();conLine("error","Stopped: the code ran for more than 3 seconds. It may contain an infinite loop (a loop that never ends).")},3000);
+}
+window.addEventListener("message",e=>{
+  if(e.source!==$("frame").contentWindow||!e.data||!e.data.oke)return;const m=e.data;
+  if(m.type==="console")conLine(m.level==="log"||m.level==="info"?"":m.level,m.text);
+  else if(m.type==="error"){const mp=B.mapLine(previewMap,m.line)||{file:Object.keys(P.files).find(n=>B.ext(n)==="js")||"script.js",line:m.line};
+    lastError={message:m.message,file:mp.file,line:mp.line};conLine("error","Error ("+mp.file+" line "+mp.line+"): "+m.message);showError($("tassist"),lastError)}
+});
+function doRun(){if(!P){toast("Open or create a project first");return}scheduleSave();tab("Test");mode==="js"?runJS():runPreview()}
+$("mPrev").onclick=()=>{mode="preview";$("mPrev").className="g";$("mJs").className="";if(P)runPreview()};
+$("mJs").onclick=()=>{mode="js";$("mJs").className="g";$("mPrev").className="";if(P)runJS()};
+$("again").onclick=doRun;$("run").onclick=doRun;
+/* ---------- LEARN ---------- */
+function docCard(d){const c=el("div","card");c.append(el("h4","",d.cat+" · "+d.title),el("p","",d.text));if(d.example)c.append(el("pre","c",d.example));return c}
+function showDocs(q){const out=$("dout");out.textContent="";const r=B.searchDocs(q);if(!r.length){out.append(el("p","note","No offline doc matches “"+q+"”. Try another word, or ask BAINT below."));return}r.forEach(d=>out.append(docCard(d)))}
+$("dq").addEventListener("input",()=>{const q=$("dq").value.trim();q?showDocs(q):($("dout").textContent="")});
+["HTML page structure","CSS flexbox","JavaScript events","Loops","console.log","Common errors"].forEach(t=>{const b=el("button","g",t);b.onclick=()=>{$("dq").value=t;showDocs(t)};$("chips").append(b)});
+const dbg=el("button","","Debug practice");dbg.onclick=async()=>{await createProject("calc_bug","Debug practice: calculator");tab("Build");toast("A calculator with a hidden bug. Press Run, then Explain the error.")};$("chips").append(dbg);
+let engineReady=null;
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("Could not load "+src));document.head.append(s)})}
+function loadEngine(){if(engineReady)return engineReady;engineReady=(async()=>{for(const f of ["lessons.js","lessons-extra.js","lessons-aerospace.js","lessons-phy101.js","lessons-core2.js","lessons-approved.js","engine.js"])await loadScript(f);if(!window.BAINT_ENGINE)throw new Error("engine missing")})();engineReady.catch(()=>{engineReady=null});return engineReady}
+async function ask(){
+  const q=$("aq").value.trim();if(!q)return;const out=$("aout");out.textContent="";out.append(el("p","note","Thinking…"));
+  try{await loadEngine();const r=await Promise.resolve(window.BAINT_ENGINE.answer(q,{subject:"computer",mode:"step"}));out.textContent="";
+    const c=el("div","card");if(r.lead)c.append(el("h4","",r.lead));if(r.text)c.append(el("p","",r.text));
+    if(r.quote)c.append(el("pre","c",r.quoteLabel?r.quoteLabel+": "+r.quote:r.quote));
+    if(r.steps&&r.steps.length){const o=el("ol");r.steps.forEach(s=>o.append(el("li","",s.text)));c.append(o)}
+    if(r.check)c.append(el("p","",r.check));if(r.hint)c.append(el("p","note",r.hint));out.append(c)}
+  catch(e){out.textContent="";out.append(el("p","note","The lesson library could not be loaded here ("+e.message+"). The docs search above still works."))}
+}
+$("aBtn").onclick=ask;$("aq").addEventListener("keydown",e=>{if(e.key==="Enter")ask()});
+/* ---------- BUILD toolbar ---------- */
+$("check").onclick=()=>{if(!P)return;runCheck($("assist"))};
+$("expl").onclick=()=>{if(!P)return;explainCodeUI($("assist"))};
+$("impr").onclick=()=>{if(!P)return;improveUI($("assist"))};
+$("save").onclick=async()=>{if(!P)return;await doSave();toast("Saved on this device")};
+$("gen").onclick=async()=>{
+  const q=prompt("What do you want to build? I can start a calculator, counter, to-do list, digital clock, BMI calculator or a first web page.","calculator");if(!q)return;
+  const g=B.generate(q);const t=$("assist");t.textContent="";
+  if(!g){const c=el("div","card warn");c.append(el("h4","","I cannot build that yet"),el("p","","My starter generator only knows: calculator, counter, to-do list, digital clock, BMI calculator and a first web page. I do not write other programs on my own, and I will not pretend to."),el("p","note","Use the Learn tab to study the topic, then write it in the editor. I can check it and explain any errors."));t.append(c);return}
+  if(!confirm("Create a NEW project “"+g.name+"”? Your current project is not changed."))return;
+  await doSave();await createProject(g.key,g.name);toast("Created “"+g.name+"”. Press Run to test it.");
+};
+$("exp").onclick=async()=>{
+  if(!P)return;await doSave();const z=B.makeZip(P.files,P.name),a=el("a");a.href=URL.createObjectURL(new Blob([z],{type:"application/zip"}));
+  a.download=P.name.replace(/[^\w.-]+/g,"_")+".zip";document.body.append(a);a.click();a.remove();toast("Exported a copy. Your project is unchanged.");
+};
+$("projBtn").onclick=()=>{drawProjects();$("projScrim").classList.add("on")};$("closeProj").onclick=()=>$("projScrim").classList.remove("on");
+$("projScrim").onclick=e=>{if(e.target===$("projScrim"))$("projScrim").classList.remove("on")};
+$("newProj").onclick=async()=>{const n=prompt("Project name:",$("tplSel").selectedOptions[0].text);if(!n)return;await createProject($("tplSel").value,n);$("projScrim").classList.remove("on");tab("Build")};
+B.templateList().forEach(t=>{const o=document.createElement("option");o.value=t.key;o.textContent=t.name;$("tplSel").append(o)});
+$("tLearn").onclick=()=>tab("Learn");$("tBuild").onclick=()=>tab("Build");$("tTest").onclick=()=>tab("Test");
+/* ---------- status, offline, start ---------- */
+function net(){const on=navigator.onLine!==false;$("net").className="dot"+(on?"":" off");$("net").title=on?"Online":"Offline: Build Mode still works"}
+window.addEventListener("online",net);window.addEventListener("offline",net);net();
+window.addEventListener("pagehide",()=>{if(P)S.save(P)});
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+(async()=>{
+  try{const list=await S.list();let id=null;try{id=localStorage.getItem("oke_last_project")}catch(e){}
+    if(list.length)await openProject(list.find(p=>p.id===id)?id:list[0].id);else await createProject("hello","My first page")}
+  catch(e){toast("Storage is not available in this browser mode")}
+})();
+})();
+</script>
+</body>
+</html>
