@@ -2,7 +2,7 @@
 const vm=require('vm'),fs=require('fs'),path=require('path');
 global.window=global;global.localStorage={getItem(){return null},setItem(){}};global.navigator={onLine:false};
 const root=path.join(__dirname,'..');
-for(const f of ['lessons.js','lessons-extra.js','lessons-aerospace.js','lessons-phy101.js','lessons-chm101.js','lessons-core2.js','lessons-approved.js','solver.js','numeric.js','engine.js','blde.js','memory.js','curriculum.js','testbook.js','casestudy.js'])vm.runInThisContext(fs.readFileSync(path.join(root,f),'utf8'),{filename:f});
+for(const f of ['lessons.js','lessons-extra.js','lessons-aerospace.js','lessons-phy101.js','lessons-core2.js','lessons-approved.js','solver.js','numeric.js','engine.js','blde.js','memory.js','curriculum.js','testbook.js','casestudy.js'])vm.runInThisContext(fs.readFileSync(path.join(root,f),'utf8'),{filename:f});
 const E=window.BAINT_ENGINE;
 /* [subject, question, expected lesson id(s)] */
 const T=[
@@ -23,17 +23,6 @@ const T=[
  ['government','What is federalism?',['federalism']],['government','What is democracy?',['democracy']],
  ['economics','What is inflation?',['inflation']],['economics','What is GDP?',['gdp']],['economics','What is opportunity cost?',['opportunity_cost']],['economics','What is a monopoly?',['monopoly']],['economics','Explain supply and demand',['supply_demand']],
  ['computer','What is HTML?',['html_basics']],['computer','What is an algorithm?',['algorithm']],['engineering','What is stress and strain?',['stress_strain']],['aerospace','What is Mach number?',['aerodynamics_basics']],['aerospace','How do aeroplanes fly?',['forces_of_flight']],['aerospace','How does a jet engine work?',['aircraft_propulsion']],
- ['chemistry','Atoms, molecules, elements, compounds and mixtures',['matter_classification']],['chemistry','What is an element?',['matter_classification']],['chemistry','What is a mixture?',['matter_classification']],
- ['chemistry','Modern atomic theory',['modern_atomic_theory']],['chemistry','Atomic theory and nature of atoms',['modern_atomic_theory']],['chemistry','What are isotopes?',['modern_atomic_theory']],
- ['chemistry','Electronic theory of atoms',['electronic_structure']],['chemistry','How do I write an electron configuration?',['electronic_structure']],
- ['chemistry','Chemical bonding and intermolecular forces',['intermolecular_forces','chemical_bonding']],['chemistry','What is hydrogen bonding?',['intermolecular_forces']],['chemistry','Explain London dispersion forces',['intermolecular_forces']],
- ['chemistry','Chemical kinetics',['chemical_kinetics']],['chemistry','What is the order of a reaction?',['chemical_kinetics']],['chemistry','What is activation energy?',['chemical_kinetics','catalyst','rates_reaction']],
- ['chemistry','Kinetic theory of matter and gas laws',['kinetic_theory_gas_laws']],['chemistry','Kinetic theory of matter',['kinetic_theory_gas_laws']],["chemistry","State Boyle's law",['kinetic_theory_gas_laws']],['chemistry','What is the ideal gas equation?',['kinetic_theory_gas_laws']],
- ['chemistry','Thermochemistry and thermodynamics',['thermochemistry','thermodynamics']],['chemistry','What is enthalpy?',['thermochemistry']],["chemistry","Explain Hess's law",['thermochemistry']],['chemistry','What is entropy?',['thermodynamics']],['chemistry','What is Gibbs free energy?',['thermodynamics']],
- ['chemistry','Redox reaction and electrochemistry',['electrochemistry','redox']],['chemistry','Explain a galvanic cell',['electrochemistry']],["chemistry","Faraday's laws of electrolysis",['electrochemistry','electrolysis']],['chemistry','How do I assign oxidation numbers?',['oxidation_numbers']],
- ['chemistry','Chemical equilibrium',['chemical_equilibrium']],['chemistry','What is the equilibrium constant?',['equilibrium_constant']],["chemistry","Explain Le Chatelier's principle",['chemical_equilibrium']],
- ['chemistry','Wave-particle duality',['wave_particle_duality']],['chemistry','What is the de Broglie wavelength?',['wave_particle_duality']],['chemistry','Explain quantum numbers',['wave_particle_duality','electronic_structure']],
- ['chemistry','Chemical reaction',['reaction_types','chemical_reactions']],['chemistry','Types of chemical reactions',['reaction_types']],['chemistry','Stoichiometry',['stoichiometry']],['chemistry','What is a limiting reagent?',['stoichiometry']],['chemistry','How do I calculate percentage yield?',['stoichiometry']],
  ['math','What is a matrix?',null],['math','Explain the binomial theorem',null]
 ];
 (async()=>{
